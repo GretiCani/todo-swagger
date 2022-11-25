@@ -1,183 +1,104 @@
 ---
 openapi: 3.0.2
 info:
-  title: todo
   version: 1.0.0
-  description: Todo List
-  contact:
-    name: Jamie Land
-    url: http://redhat.com
-    email: jland@redhat.com
+  title: Swagger Petstore
   license:
-    name: Apache 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
-servers:
-- url: http://localhost:8080/v1
-  description: Localhost
+    name: MIT
+host: petstore.swagger.io
+basePath: /v1
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
 paths:
-  /todos:
+  /pets:
     get:
+      summary: List all pets
+      operationId: listPets
       tags:
-      - todo
+        - pets
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          type: integer
+          format: int32
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/todo'
-      operationId: getTodos
+          description: A paged array of pets
+          headers:
+            x-next:
+              type: string
+              description: A link to the next page of responses
+          schema:
+            $ref: '#/definitions/Pets'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
     post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/todo'
-        required: true
+      summary: Create a pet
+      operationId: createPets
       tags:
-      - todo
+        - pets
       responses:
         "201":
-          description: Successful response.
-      operationId: createTodo
-    parameters:
-    - name: completed
-      schema:
-        type: boolean
-      in: query
-  /todos/{todoId}:
+          description: Null response
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /pets/{petId}:
     get:
+      summary: Info for a specific pet
+      operationId: showPetById
       tags:
-      - todo
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          description: The id of the pet to retrieve
+          type: string
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/todo'
-        "404":
-          description: Todo item not found
-      operationId: getTodo
-    put:
-      requestBody:
-        description: Updated `todo` information.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/todo'
-        required: true
-      tags:
-      - todo
-      responses:
-        "202":
-          description: Successful response.
-        "404":
-          description: Todo item not found
-      operationId: updateTodo
-    delete:
-      tags:
-      - todo
-      responses:
-        "204":
-          description: Successful response.
-        "404":
-          description: Todo item not found
-      operationId: deleteTodo
-    parameters:
-    - name: todoId
-      schema:
+          description: Expected response to a valid request
+          schema:
+            $ref: '#/definitions/Pets'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Pet:
+    type: "object"
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
         type: string
-      in: path
-      required: true
-  /users:
-   
-    get:
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/user'
-      operationId: getusers
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/user'
-        required: true
-      responses:
-        "201":
-          description: Successful response.
-      operationId: createuser
-  /users/{userId}:
-    get:
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/user'
-      operationId: getuser
-    put:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/user'
-        required: true
-      responses:
-        "202":
-          description: Successful response.
-      operationId: updateuser
-    delete:
-      responses:
-        "204":
-          description: Successful response.
-      operationId: deleteuser
-    parameters:
-    - name: userId
-      schema:
+      tag:
         type: string
-      in: path
-      required: true
-components:
-  schemas:
-    todo:
-      title: Todo
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        date:
-          format: date-time
-          type: string
-        completed:
-          description: Is Completed
-          type: boolean
-        owner:
-          $ref: '#/components/schemas/user'
-      example:
-        name: Todo item
-        date: 2018-05-06T18:25:43.511Z
-        completed: true
-    user:
-      title: Root Type for user
-      description: ""
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-      example:
-        firstName: Jon
-        lastName: Snow
-tags:
-- name: todo
-  description: 'Todo '
+  Pets:
+    type: array
+    items:
+      $ref: '#/definitions/Pet'
+  Error:
+    type: "object"
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
